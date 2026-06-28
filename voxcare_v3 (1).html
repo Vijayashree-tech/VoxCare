@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VoxCare — Smart Hospital Handover</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.1.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Comfortaa',sans-serif}
+:root{
+  --bg:#fdf6f0;--card:#ffffff;--card2:#fef9f6;--border:#f0ddd5;
+  --peach:#f4845f;--peach-light:#fde8df;--peach-mid:#f9c4b0;
+  --pink:#e87fa0;--pink-light:#fce8f0;
+  --lavender:#b07ec8;--lav-light:#f0e6f8;
+  --green:#3eb489;--green-light:#e0f5ed;
+  --amber:#e8a030;--amber-light:#fdf0dc;
+  --red:#e05555;--red-light:#fdeaea;
+  --blue:#2d7dd2;--blue-light:#ddeeff;
+  --text:#2d1f1a;--sub:#7a5c52;--muted:#b09080;
+  --shadow:0 2px 8px rgba(180,100,70,.08),0 8px 24px rgba(180,100,70,.06);
+  --shadow-hover:0 12px 40px rgba(180,100,70,.18),0 2px 8px rgba(180,100,70,.10)
+}
+body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.7}70%{transform:scale(2);opacity:0}100%{transform:scale(2);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes slide-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes beat{0%,100%{transform:scale(1)}20%{transform:scale(1.18)}40%{transform:scale(1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes logo-blink{0%,90%,100%{opacity:1}94%,96%{opacity:0.15}}
+
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes float-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop-in{0%{opacity:0;transform:scale(.88) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes live-pulse{0%,100%{box-shadow:0 0 0 0 rgba(62,180,137,.4)}70%{box-shadow:0 0 0 8px rgba(62,180,137,0)}}
+.beat{animation:beat 1.3s ease infinite}
+
+/* ── CARD POP (no tilt) ── */
+.card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:18px;
+  padding:18px;box-shadow:var(--shadow);margin-bottom:14px;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s ease, border-color .28s ease;
+  will-change:transform;position:relative;
+}
+.card:hover{
+  transform:translateY(-6px) scale(1.018);
+  box-shadow:var(--shadow-hover);
+  border-color:var(--peach-mid)
+}
+.card:last-child{margin-bottom:0}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-title i{font-size:15px}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:24px;animation:fade-in .4s ease}
+.login-wrap{width:100%;max-width:440px}
+.login-brand{text-align:center;margin-bottom:32px}
+.login-logo-mark{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;animation:float 2.8s ease-in-out infinite, logo-blink 4s ease-in-out infinite;filter:drop-shadow(0 10px 28px rgba(232,127,160,.45))}
+.login-logo-mark img{width:80px;height:80px;object-fit:cover;border-radius:50%}
+.login-brand h1{font-size:30px;font-weight:700;color:var(--text)}
+.login-brand h1 em{color:var(--peach);font-style:normal}
+.login-brand p{font-size:13px;color:var(--sub);margin-top:5px}
+.portal-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.portal-btn{
+  padding:22px 16px;border-radius:18px;border:2px solid var(--border);
+  background:var(--card);cursor:pointer;text-align:center;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s ease, border-color .2s, background .2s
+}
+.portal-btn:hover{border-color:var(--peach-mid);background:var(--peach-light);transform:translateY(-4px) scale(1.03);box-shadow:0 10px 28px rgba(244,132,95,.18)}
+.portal-btn.selected{border-color:var(--peach);background:var(--peach-light);transform:translateY(-4px) scale(1.03);box-shadow:0 10px 28px rgba(244,132,95,.22)}
+.portal-btn i{font-size:28px;display:block;margin-bottom:8px}
+.portal-btn .pb-label{font-size:13px;font-weight:700;color:var(--text)}
+.portal-btn .pb-sub{font-size:11px;color:var(--sub);margin-top:3px}
+.login-form{background:var(--card);border-radius:22px;padding:28px;border:1.5px solid var(--border);box-shadow:var(--shadow)}
+.login-form h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px}
+.form-group input{width:100%;padding:12px 14px;border-radius:11px;border:1.5px solid var(--border);background:var(--card2);font-size:13px;color:var(--text);outline:none;transition:all .18s;font-family:'Comfortaa',sans-serif}
+.form-group input:focus{border-color:var(--peach);box-shadow:0 0 0 3px rgba(244,132,95,.12)}
+.login-btn{width:100%;padding:14px;border-radius:13px;background:linear-gradient(135deg,#f4845f,#e87fa0);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;font-family:'Comfortaa',sans-serif}
+.login-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 24px rgba(244,132,95,.38)}
+.login-error{display:none;background:var(--red-light);border:1.5px solid #f5b8b8;border-radius:9px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;font-weight:700}
+.login-error.on{display:block}
+
+/* ── SHIFT POPUP ── */
+.shift-popup-overlay{display:none;position:fixed;inset:0;background:rgba(45,31,26,.45);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fade-in .25s ease}
+.shift-popup-overlay.on{display:flex}
+.shift-popup{background:#fff;border-radius:24px;padding:28px;max-width:500px;width:calc(100% - 40px);box-shadow:0 24px 80px rgba(45,31,26,.22);animation:pop-in .35s cubic-bezier(.34,1.56,.64,1)}
+.shift-popup-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.shift-popup-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f4845f,#e87fa0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.shift-popup-icon i{font-size:22px;color:#fff}
+.shift-popup h2{font-size:18px;font-weight:700;color:var(--text)}
+.shift-popup p{font-size:13px;color:var(--sub);margin-top:3px}
+.shift-priority-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;max-height:300px;overflow-y:auto}
+.shift-item{border-radius:12px;padding:12px 14px;border-left:3px solid transparent}
+.shift-item.critical{background:var(--red-light);border-left-color:var(--red)}
+.shift-item.moderate{background:var(--amber-light);border-left-color:var(--amber)}
+.shift-item.stable{background:var(--green-light);border-left-color:var(--green)}
+.shift-item-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.shift-item-note{font-size:12px;color:var(--sub);line-height:1.5}
+.shift-popup-close{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#f4845f,#e87fa0);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Comfortaa',sans-serif;transition:all .2s}
+.shift-popup-close:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(244,132,95,.35)}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.on{display:flex;animation:fade-in .3s ease}
+.app-nav{background:#fff;border-bottom:1.5px solid var(--border);display:flex;align-items:center;padding:0 20px;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(180,100,70,.06)}
+.nav-logo{display:flex;align-items:center;gap:9px;margin-right:22px;flex-shrink:0}
+.nav-logo-mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#f4845f,#e87fa0);display:flex;align-items:center;justify-content:center}
+.nav-logo-mark i{font-size:17px;color:#fff}
+.nav-logo-text{font-size:17px;font-weight:700;color:var(--text)}
+.nav-logo-text em{color:var(--peach);font-style:normal}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+.nav-tab{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border:none;background:none;transition:all .18s;white-space:nowrap;flex-shrink:0;font-family:'Comfortaa',sans-serif}
+.nav-tab:hover{color:var(--sub);background:var(--peach-light)}
+.nav-tab.on{color:var(--peach);background:var(--peach-light)}
+.nav-badge{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.1s infinite;flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:10px}
+.shift-tag{background:var(--green-light);color:var(--green);font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.portal-tag{font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px}
+.nurse-tag{background:var(--peach-light);color:var(--peach)}
+.doctor-tag{background:var(--blue-light);color:var(--blue)}
+.nav-av{width:34px;height:34px;border-radius:50%;border:2px solid var(--peach-mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--peach);background:var(--peach-light)}
+.logout-btn{padding:6px 13px;border-radius:9px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;transition:all .18s;font-family:'Comfortaa',sans-serif}
+.logout-btn:hover{background:var(--red-light);color:var(--red);border-color:#f5b8b8}
+.app-body{flex:1;padding:20px;max-width:1100px;width:100%;margin:0 auto}
+
+/* ── PANES ── */
+.pane{display:none}
+.pane.on{display:block;animation:float-in .3s ease}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+
+/* ── STATS ── */
+.stat-val{font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.stat-desc{font-size:12px;color:var(--sub);margin-top:5px;line-height:1.5}
+.stat-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;margin-top:8px}
+
+/* ── PIE ── */
+.pie-wrap{display:flex;align-items:center;gap:18px}
+.pie-legend{display:flex;flex-direction:column;gap:9px;flex:1}
+.pie-leg-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sub)}
+.pie-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pie-leg-val{font-weight:700;color:var(--text);margin-left:auto}
+
+/* ── PATIENT LIST ── */
+.pat-row{display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1.5px solid #fdf0ea;transition:all .2s cubic-bezier(.34,1.56,.64,1);border-radius:10px}
+.pat-row:last-of-type{border:none}
+.pat-row:hover{background:var(--peach-light);transform:translateY(-2px) scale(1.008);box-shadow:0 4px 16px rgba(244,132,95,.1)}
+.pat-av{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.pat-name{font-size:13px;font-weight:700;color:var(--text)}
+.pat-info{font-size:11px;color:var(--sub);margin-top:2px}
+.pat-badge{padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;flex-shrink:0}
+.risk-high{background:var(--red-light);color:var(--red)}
+.risk-med{background:var(--amber-light);color:var(--amber)}
+.risk-low{background:var(--green-light);color:var(--green)}
+.pat-expand-btn{margin-left:8px;padding:5px 11px;border-radius:9px;border:1.5px solid var(--border);background:none;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;transition:all .18s;flex-shrink:0;font-family:'Comfortaa',sans-serif}
+.pat-expand-btn:hover{background:var(--peach-light);color:var(--peach);border-color:var(--peach-mid)}
+.pat-detail{display:none;background:var(--card2);border-radius:13px;padding:14px;margin:6px;border:1.5px solid var(--border)}
+.pat-detail.on{display:block;animation:slide-up .2s ease}
+
+/* ── VITALS ── */
+.vital-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vital-box{
+  background:var(--card2);border:1.5px solid var(--border);border-radius:13px;padding:12px;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease
+}
+.vital-box:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 8px 22px rgba(180,100,70,.12);border-color:var(--peach-mid)}
+.vital-lbl{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.vital-num{font-size:22px;font-weight:700;letter-spacing:-.3px}
+.vital-unit{font-size:10px;color:var(--muted);font-weight:400;margin-left:2px}
+.vital-bar{height:4px;background:#f0ddd5;border-radius:2px;margin-top:8px;overflow:hidden}
+.vital-fill{height:100%;border-radius:2px;transition:width .7s ease}
+.vital-live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:6px;vertical-align:middle;animation:live-pulse 1.5s infinite}
+
+/* ── ALERTS ── */
+.alert-row{
+  display:flex;align-items:flex-start;gap:12px;padding:12px 8px;border-bottom:1.5px solid #fdf0ea;
+  border-radius:10px;transition:all .2s
+}
+.alert-row:hover{background:var(--peach-light);transform:translateY(-2px)}
+.alert-row:last-child{border:none}
+.alert-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.alert-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.alert-desc{font-size:12px;color:var(--sub);line-height:1.5}
+.alert-time{font-size:10px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:4px}
+.alert-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:blink 1s infinite}
+.dismiss-btn{background:var(--peach-light);border:1.5px solid var(--border);border-radius:9px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--peach);cursor:pointer;flex-shrink:0;transition:all .18s;font-family:'Comfortaa',sans-serif}
+.dismiss-btn:hover{background:var(--peach);color:#fff;border-color:var(--peach)}
+
+/* ── MIC ── */
+.mic-zone{text-align:center;padding:10px 0}
+.mic-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+.mic-ring{position:absolute;width:86px;height:86px;border-radius:50%;border:2.5px solid var(--peach);opacity:0}
+.mic-ring.on{animation:pulse-ring 1.5s ease-out infinite}
+.mic-ring.r2.on{animation:pulse-ring 1.5s ease-out .5s infinite}
+.mic-btn{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#f4845f,#e87fa0);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;transition:transform .15s;box-shadow:0 6px 20px rgba(244,132,95,.35)}
+.mic-btn:hover{transform:scale(1.1) translateY(-2px)}
+.mic-btn.rec{background:linear-gradient(135deg,#e05555,#c0404f);box-shadow:0 6px 20px rgba(224,85,85,.4)}
+.mic-btn i{font-size:28px;color:#fff}
+.wvf{display:flex;align-items:center;justify-content:center;gap:3px;height:32px;margin:8px 0 14px}
+.wvf-b{width:3px;border-radius:2px;background:var(--peach-mid);transition:all .1s}
+.wvf-b.on{background:var(--peach)}
+.rec-lbl{font-size:13px;color:var(--sub);margin-bottom:4px;font-weight:600}
+.rec-time{font-size:36px;font-weight:700;color:var(--text);letter-spacing:2px;font-variant-numeric:tabular-nums;margin-bottom:16px}
+.tag-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:18px}
+.vtag{padding:6px 13px;border-radius:9px;font-size:11px;font-weight:700;background:var(--peach-light);color:var(--sub);cursor:pointer;border:1.5px solid transparent;transition:all .18s;font-family:'Comfortaa',sans-serif}
+.vtag:hover{border-color:var(--peach-mid);transform:translateY(-1px) scale(1.04)}
+.vtag.on{color:var(--peach);border-color:var(--peach);background:#fde8df}
+.submit-btn{background:linear-gradient(135deg,#f4845f,#e87fa0);color:#fff;border:none;border-radius:13px;padding:13px 36px;font-size:13px;font-weight:700;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);font-family:'Comfortaa',sans-serif;box-shadow:0 4px 14px rgba(244,132,95,.3)}
+.submit-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 8px 24px rgba(244,132,95,.4)}
+.submit-btn:disabled{background:#e8d0c8;color:#b09080;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── LIVE TRANSCRIPT ── */
+.transcript-box{background:var(--card2);border:1.5px solid var(--border);border-radius:13px;padding:14px;margin:12px 0;min-height:70px;text-align:left;font-size:13px;color:var(--text);line-height:1.7;display:none;position:relative}
+.transcript-box.on{display:block;animation:slide-up .2s ease}
+.transcript-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.interim-text{color:var(--muted);font-style:italic}
+.final-text{color:var(--text)}
+.toast{display:none;align-items:center;gap:8px;background:var(--green-light);border:1.5px solid #a8e0cb;border-radius:11px;padding:12px 16px;margin-top:14px;font-size:12px;color:var(--green);font-weight:700}
+.toast.on{display:flex;animation:slide-up .3s ease}
+
+/* ── AI ANALYSIS BOX ── */
+.ai-box{border-radius:13px;padding:14px;margin-top:14px;display:none;border:1.5px solid var(--lavender);background:var(--lav-light)}
+.ai-box.on{display:block;animation:slide-up .3s ease}
+.ai-box-header{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--lavender);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.ai-body{font-size:13px;color:var(--sub);line-height:1.7}
+.ai-risk-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:8px}
+.ai-thinking{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:8px 0}
+.ai-thinking-dot{width:6px;height:6px;border-radius:50%;background:var(--lavender);animation:blink .8s infinite}
+.ai-thinking-dot:nth-child(2){animation-delay:.25s}
+.ai-thinking-dot:nth-child(3){animation-delay:.5s}
+
+/* ── PATIENT NOTIFICATION CARD (sent after handover) ── */
+.patient-notify-box{background:linear-gradient(135deg,#e0f5ed,#f0e6f8);border:1.5px solid #a8e0cb;border-radius:13px;padding:14px;margin-top:10px;display:none}
+.patient-notify-box.on{display:block;animation:slide-up .3s ease}
+.patient-notify-header{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px}
+.patient-notify-msg{font-size:12px;color:var(--sub);line-height:1.6}
+
+/* ── LOG ── */
+.log-entry{
+  background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease
+}
+.log-entry:hover{transform:translateY(-4px) scale(1.008);box-shadow:0 8px 24px rgba(180,100,70,.12);border-color:var(--peach-mid)}
+.log-entry.new-entry{border-color:var(--peach);background:var(--peach-light)}
+.log-entry.critical-entry{border-color:var(--red);background:var(--red-light)}
+.log-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.log-name{font-size:13px;font-weight:700;color:var(--text)}
+.log-meta{font-size:11px;color:var(--muted);text-align:right}
+.log-shift-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-top:3px}
+.log-body{font-size:12px;color:var(--sub);line-height:1.6}
+.log-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.log-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--peach-light);color:var(--peach)}
+.log-ai-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--lav-light);color:var(--lavender);display:flex;align-items:center;gap:4px}
+
+/* ── DOCTOR PANES ── */
+.doc-patient-row{display:flex;align-items:flex-start;gap:12px;padding:14px 8px;border-bottom:1.5px solid #fdf0ea;border-radius:10px;transition:all .2s}
+.doc-patient-row:hover{background:var(--peach-light);transform:translateY(-2px)}
+.doc-patient-row:last-child{border:none}
+.doc-pat-main{flex:1}
+.doc-pat-name{font-size:14px;font-weight:700;color:var(--text)}
+.doc-pat-meta{font-size:12px;color:var(--sub);margin-top:2px}
+.doc-pat-nurse{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
+.doc-pat-status{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.55;border-radius:9px;padding:9px 12px;border-left:3px solid var(--peach-mid);background:var(--card2)}
+.doc-pat-status.urgent{border-left-color:var(--red);background:var(--red-light)}
+.doc-pat-status.moderate{border-left-color:var(--amber);background:var(--amber-light)}
+.doc-pat-status.good{border-left-color:var(--green);background:var(--green-light)}
+.doc-note-btn{padding:7px 14px;border-radius:9px;border:1.5px solid var(--border);background:none;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;font-family:'Comfortaa',sans-serif}
+.doc-note-btn:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue)}
+.doc-note-btn.done{background:var(--green-light);color:var(--green);border-color:#a8e0cb}
+.info-box{font-size:12px;color:var(--sub);padding:12px 14px;background:var(--peach-light);border-radius:11px;line-height:1.6;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px}
+.info-box i{font-size:16px;color:var(--peach);flex-shrink:0;margin-top:1px}
+
+/* ── LIVE CLOCK ── */
+.live-clock{font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+
+@media(max-width:640px){
+  .row2,.row3{grid-template-columns:1fr}
+  .nav-tab span{display:none}
+  .app-body{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- SHIFT CHANGE POPUP -->
+<div class="shift-popup-overlay" id="shift-popup">
+  <div class="shift-popup">
+    <div class="shift-popup-header">
+      <div class="shift-popup-icon"><i class="ti ti-clipboard-heart"></i></div>
+      <div>
+        <h2 id="shift-popup-title">Good morning! Shift briefing</h2>
+        <p id="shift-popup-sub">3 patients need immediate attention</p>
+      </div>
+    </div>
+    <div class="shift-priority-list" id="shift-priority-list"></div>
+    <button class="shift-popup-close" onclick="closeShiftPopup()">
+      <i class="ti ti-check" style="margin-right:6px;vertical-align:-2px"></i>Got it — start my shift
+    </button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="login-logo-mark"><img src="data:image/jpeg;base64,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" alt="VoxCare Heart Logo"></div>
+      <h1>Vox<em>Care</em></h1>
+      <p>Smart handover system for nurses and doctors</p>
+    </div>
+    <p style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Sign in as</p>
+    <div class="portal-pick">
+      <div class="portal-btn selected" id="pb-nurse" onclick="selectPortal('nurse')">
+        <i class="ti ti-nurse" style="color:var(--peach)"></i>
+        <div class="pb-label">Nurse</div>
+        <div class="pb-sub">Manage patients & handovers</div>
+      </div>
+      <div class="portal-btn" id="pb-doctor" onclick="selectPortal('doctor')">
+        <i class="ti ti-stethoscope" style="color:var(--blue)"></i>
+        <div class="pb-label">Doctor</div>
+        <div class="pb-sub">Review rounds & updates</div>
+      </div>
+    </div>
+    <div class="login-form">
+      <h2 id="login-title">Nurse Sign In</h2>
+      <div class="login-error" id="login-error"></div>
+      <div class="form-group"><label>Username</label><input type="text" id="login-user" placeholder="Enter your username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="Enter your password"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+      <div id="login-hint" style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="app-nav">
+    <div class="nav-logo">
+      <div class="nav-logo-mark"><i class="ti ti-activity-heartbeat"></i></div>
+      <div class="nav-logo-text">Vox<em>Care</em></div>
+    </div>
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="nav-right">
+      <div class="live-clock" id="live-clock">--:--:--</div>
+      <div class="shift-tag"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite"></div><span id="shift-label">Night shift · Ward B</span></div>
+      <div class="portal-tag" id="portal-tag">Nurse</div>
+      <div class="nav-av" id="nav-av">NR</div>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout" style="font-size:13px;vertical-align:-2px"></i> Sign out</button>
+    </div>
+  </nav>
+  <div class="app-body" id="app-body"></div>
+</div>
+
+<script>
+/* ═══════════════════════════ DATA ═══════════════════════════ */
+const patients=[
+  {id:1,name:"Ravi Kumar",bed:"Bed 4",ward:"ICU",risk:"high",init:"RK",bc:"#fde8df",tc:"#f4845f",nurse:"Nurse Rekha",
+   status:"Oxygen levels have been going up and down all night. He is on extra oxygen right now. His heart rate is a little high and he had a mild fever at 2 AM. He needs a doctor check first thing in the morning.",
+   vitals:{hr:98,spo:93,bp:"140/90",temp:38.4},
+   handovers:[
+     {shift:"Day Shift",by:"Nurse Priya",time:"6:00 PM",note:"Patient came in with breathing trouble. Oxygen given. Resting but uneasy.",tags:["Breathing","Oxygen"],risk:"high"},
+     {shift:"Night Shift",by:"Nurse Rekha",time:"2:00 AM",note:"Oxygen dropped to 91% at 2:14 AM. Increased oxygen to 4L/min. Doctor Nair was informed. Patient slowly responding.",tags:["Critical","Doctor Notified","Oxygen"],risk:"high",aiRisk:"CRITICAL",aiNote:"Hypoxia event detected. SpO2 <92% indicates respiratory compromise. Immediate doctor review required."}
+   ]},
+  {id:2,name:"Meena Devi",bed:"Bed 7",ward:"Ward B",risk:"med",init:"MD",bc:"#fdf0dc",tc:"#e8a030",nurse:"Nurse Lakshmi",
+   status:"She had her surgery 2 days ago. Pain went up to 7 out of 10 last night. We gave her morphine and it came down to 4. Her wound dressing was changed at 11:45 PM. The surgeon should check her today.",
+   vitals:{hr:82,spo:97,bp:"118/76",temp:37.1},
+   handovers:[
+     {shift:"Day Shift",by:"Nurse Anitha",time:"6:00 PM",note:"Post-op recovery going fine. Pain was 4/10. Wound looks clean.",tags:["Post-op","Pain"],risk:"med"},
+     {shift:"Night Shift",by:"Nurse Lakshmi",time:"1:30 AM",note:"Pain score jumped to 7/10 at midnight. Morphine 5mg given at 1:15 AM. Pain now at 4/10. Surgeon Dr. Rajan informed.",tags:["Pain","Medication","Surgeon Notified"],risk:"med",aiRisk:"MODERATE",aiNote:"Pain escalation post-surgery. Opioid administered — monitor for respiratory depression. Surgeon review needed within 6 hours."}
+   ]},
+  {id:3,name:"Arjun Sharma",bed:"Bed 11",ward:"Ward B",risk:"med",init:"AS",bc:"#fdf0dc",tc:"#e8a030",nurse:"Nurse Rekha",
+   status:"He missed his diabetes tablet last night at 10 PM. His blood sugar was high at 11.4 at 3:30 AM. He needs his tablet first thing in the morning and a dietitian visit today.",
+   vitals:{hr:76,spo:98,bp:"128/82",temp:36.9},
+   handovers:[
+     {shift:"Day Shift",by:"Nurse Priya",time:"6:00 PM",note:"Blood sugar normal. Medication given on time.",tags:["Diabetes","Medication"],risk:"low"},
+     {shift:"Night Shift",by:"Nurse Rekha",time:"3:30 AM",note:"Metformin 500mg missed at 10 PM. Blood sugar now 11.4. Dietitian visit flagged for morning.",tags:["Missed Medication","Diabetes"],risk:"med",aiRisk:"MODERATE",aiNote:"Missed antidiabetic medication with hyperglycaemia (11.4 mmol/L). Risk of DKA if untreated. Administer medication immediately and monitor."}
+   ]},
+  {id:4,name:"Priya Nair",bed:"Bed 2",ward:"Ward B",risk:"low",init:"PN",bc:"#e0f5ed",tc:"#3eb489",nurse:"Nurse Lakshmi",
+   status:"She is resting well and all her numbers look normal. No issues overnight. Routine morning check is enough.",
+   vitals:{hr:72,spo:99,bp:"112/70",temp:36.6},
+   handovers:[{shift:"Night Shift",by:"Nurse Lakshmi",time:"6:00 AM",note:"Slept through most of the night. No complaints. All vitals normal.",tags:["Stable"],risk:"low"}]},
+  {id:5,name:"Suresh Babu",bed:"Bed 9",ward:"Ward B",risk:"low",init:"SB",bc:"#e0f5ed",tc:"#3eb489",nurse:"Nurse Anitha",
+   status:"He is being prepared for discharge today. All paperwork and medicines being arranged. A final check from the doctor will clear him.",
+   vitals:{hr:68,spo:98,bp:"120/78",temp:36.8},
+   handovers:[{shift:"Night Shift",by:"Nurse Anitha",time:"6:00 AM",note:"Patient ready for discharge. Discharge papers and medicines being arranged. Needs final doctor sign-off.",tags:["Discharge","Stable"],risk:"low"}]},
+  {id:6,name:"Lakshmi Rao",bed:"Bed 14",ward:"Ward B",risk:"low",init:"LR",bc:"#e0f5ed",tc:"#3eb489",nurse:"Nurse Anitha",
+   status:"Blood test is due this morning. She is resting fine and has no complaints.",
+   vitals:{hr:74,spo:97,bp:"124/80",temp:36.7},
+   handovers:[{shift:"Night Shift",by:"Nurse Anitha",time:"6:00 AM",note:"Patient comfortable. Blood test due this morning. No issues overnight.",tags:["Stable","Blood Work"],risk:"low"}]},
+];
+
+let alertData=[
+  {ico:"ti-heart",ic:"#e05555",ib:"#fdeaea",title:"Oxygen dropped — Ravi Kumar · Bed 4",desc:"Oxygen level fell to 91% at 2:14 AM. Extra oxygen given. Doctor Nair informed.",time:"2 min ago",live:true},
+  {ico:"ti-pill",ic:"#e8a030",ib:"#fdf0dc",title:"Missed tablet — Arjun Sharma · Bed 11",desc:"Metformin tablet due at 10 PM was not given. Blood sugar now 11.4.",time:"18 min ago",live:false},
+  {ico:"ti-stethoscope",ic:"#b07ec8",ib:"#f0e6f8",title:"Doctor review needed — Meena Devi · Bed 7",desc:"Pain went up to 7/10 after surgery. Morphine given, surgeon notified.",time:"41 min ago",live:false},
+];
+
+let savedHandovers=[];
+let currentPortal='nurse';
+let loggedUser='Nurse';
+let vitalInterval=null;
+let clockInterval=null;
+
+/* ═══════════════ LIVE CLOCK ═══════════════ */
+function startClock(){
+  clearInterval(clockInterval);
+  function tick(){
+    const now=new Date();
+    const s=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const el=document.getElementById('live-clock');if(el)el.textContent=s;
+  }
+  tick();clockInterval=setInterval(tick,1000);
+}
+
+/* ═══════════════ SHIFT POPUP ═══════════════ */
+function showShiftPopup(isNurse){
+  const criticals=patients.filter(p=>p.risk==='high');
+  const mods=patients.filter(p=>p.risk==='med');
+  const stables=patients.filter(p=>p.risk==='low');
+
+  const shiftName=isNurse?'Morning Shift':'Morning Rounds';
+  document.getElementById('shift-popup-title').textContent=`Good morning! ${shiftName} briefing`;
+  document.getElementById('shift-popup-sub').textContent=
+    `${criticals.length} critical · ${mods.length} need watching · ${stables.length} stable`;
+
+  const list=document.getElementById('shift-priority-list');
+  const items=[
+    ...criticals.map(p=>`<div class="shift-item critical">
+      <div class="shift-item-name">🔴 ${p.name} · ${p.bed} · ${p.ward}</div>
+      <div class="shift-item-note">${p.handovers[p.handovers.length-1].note}</div>
+    </div>`),
+    ...mods.map(p=>`<div class="shift-item moderate">
+      <div class="shift-item-name">🟡 ${p.name} · ${p.bed}</div>
+      <div class="shift-item-note">${p.handovers[p.handovers.length-1].note}</div>
+    </div>`),
+    ...stables.map(p=>`<div class="shift-item stable">
+      <div class="shift-item-name">🟢 ${p.name} · ${p.bed}</div>
+      <div class="shift-item-note">${p.handovers[p.handovers.length-1].note}</div>
+    </div>`)
+  ];
+  list.innerHTML=items.join('');
+  document.getElementById('shift-popup').classList.add('on');
+}
+function closeShiftPopup(){
+  document.getElementById('shift-popup').classList.remove('on');
+}
+
+/* ═══════════════ LOGIN ═══════════════ */
+function selectPortal(p){
+  currentPortal=p;
+  document.getElementById('pb-nurse').classList.toggle('selected',p==='nurse');
+  document.getElementById('pb-doctor').classList.toggle('selected',p==='doctor');
+  document.getElementById('login-title').textContent=p==='nurse'?'Nurse Sign In':'Doctor Sign In';
+  const hint=document.getElementById('login-hint');
+  if(hint){
+    const examples=CREDENTIALS[p].map(c=>`${c.username}`).join(', ');
+    hint.innerHTML=`Authorised accounts: <strong style="color:var(--sub)">${examples}</strong>`;
+  }
+}
+/* Authorised credentials */
+const CREDENTIALS={
+  nurse:[
+    {username:'Nurse Rekha',password:'Rekha@123'},
+    {username:'Nurse Priya',password:'Priya@123'},
+    {username:'Nurse Lakshmi',password:'Lakshmi@123'},
+    {username:'Nurse Anitha',password:'Anitha@123'},
+  ],
+  doctor:[
+    {username:'Dr. Nair',password:'Nair@123'},
+    {username:'Dr. Rajan',password:'Rajan@123'},
+  ]
+};
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const pw=document.getElementById('login-pass').value.trim();
+  const err=document.getElementById('login-error');
+  err.classList.remove('on');
+  if(!u||!pw){
+    err.textContent='Please enter your username and password.';
+    err.classList.add('on');return;
+  }
+  const list=CREDENTIALS[currentPortal]||[];
+  const match=list.find(c=>c.username.toLowerCase()===u.toLowerCase()&&c.password===pw);
+  if(!match){
+    err.textContent='Invalid username or password. Please try again.';
+    err.classList.add('on');return;
+  }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('on');
+  buildApp(currentPortal,match.username);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none')doLogin();
+});
+// Show initial hint
+window.addEventListener('DOMContentLoaded',()=>selectPortal('nurse'));
+function doLogout(){
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  clearInterval(vitalInterval);clearInterval(clockInterval);
+  stopRec();
+}
+
+/* ═══════════════ BUILD APP ═══════════════ */
+function buildApp(portal,username){
+  loggedUser=username||'Nurse';
+  const isNurse=portal==='nurse';
+  document.getElementById('portal-tag').textContent=isNurse?'Nurse Portal':'Doctor Portal';
+  document.getElementById('portal-tag').className='portal-tag '+(isNurse?'nurse-tag':'doctor-tag');
+  document.getElementById('nav-av').textContent=loggedUser.substring(0,2).toUpperCase();
+  document.getElementById('shift-label').textContent=isNurse?'Night shift · Ward B':'Morning rounds';
+  startClock();
+
+  const tabs=isNurse?[
+    {id:'dash',icon:'ti-layout-dashboard',label:'Dashboard'},
+    {id:'patients',icon:'ti-users',label:'Patients'},
+    {id:'record',icon:'ti-microphone',label:'Record Handover'},
+    {id:'alerts',icon:'ti-bell',label:'Alerts',badge:true},
+    {id:'log',icon:'ti-file-text',label:'Handover Log'},
+  ]:[
+    {id:'ddash',icon:'ti-layout-dashboard',label:'Dashboard'},
+    {id:'dpatients',icon:'ti-users',label:'My Patients'},
+    {id:'dalerts',icon:'ti-bell',label:'Alerts',badge:true},
+  ];
+
+  document.getElementById('nav-tabs').innerHTML=tabs.map((t,i)=>`
+    <button class="nav-tab${i===0?' on':''}" onclick="goTab('${t.id}',this)">
+      <i class="ti ${t.icon}"></i><span>${t.label}</span>${t.badge?'<div class="nav-badge" id="nav-dot"></div>':''}
+    </button>`).join('');
+
+  document.getElementById('app-body').innerHTML=isNurse?buildNurse():buildDoctor();
+  setTimeout(()=>{
+    if(isNurse){
+      renderNursePatients();renderAlerts('alert-list');renderHandoverLog();buildWvf();
+      drawPie('pie1',[{v:3,c:'#e05555'},{v:8,c:'#e8a030'},{v:13,c:'#3eb489'}]);
+      drawPie('pie2',[{v:18,c:'#f4845f'},{v:4,c:'#f9c4b0'},{v:2,c:'#f0ddd5'}]);
+      startVitals();
+    } else {
+      renderDoctorPatients();renderAlerts('d-alert-list');
+      drawPie('dpie1',[{v:3,c:'#e05555'},{v:8,c:'#e8a030'},{v:13,c:'#3eb489'}]);
+    }
+    updateCounts();
+  },80);
+  setTimeout(()=>showShiftPopup(isNurse),600);
+}
+
+/* ═══════════════ NAV ═══════════════ */
+function goTab(id,el){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
+  const pane=document.getElementById('pane-'+id);if(pane)pane.classList.add('on');
+  el.classList.add('on');
+  if(id==='log')renderHandoverLog();
+}
+
+/* ═══════════════ NURSE HTML ═══════════════ */
+function buildNurse(){return`
+<div class="pane on" id="pane-dash">
+  <div class="row3">
+    <div class="card"><div class="card-title"><i class="ti ti-users" style="color:var(--peach)"></i>Total patients</div><div class="stat-val" style="color:var(--peach)">24</div><div class="stat-desc">Across Ward B and ICU tonight</div><div class="stat-badge" style="background:var(--peach-light);color:var(--peach)"><i class="ti ti-arrow-up" style="font-size:10px"></i>+2 since day shift</div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-alert-triangle beat" style="color:var(--red)"></i>Urgent alerts</div><div class="stat-val" style="color:var(--red)" id="d-alert-count">3</div><div class="stat-desc">Patients who need attention right now</div><div class="stat-badge" style="background:var(--red-light);color:var(--red)"><i class="ti ti-clock" style="font-size:10px"></i>Last alert 2 min ago</div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-microphone" style="color:var(--green)"></i>Handovers recorded</div><div class="stat-val" style="color:var(--green)" id="d-handover-count">18</div><div class="stat-desc">Voice notes saved across all shifts today</div><div class="stat-badge" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check" style="font-size:10px"></i>6 still pending</div></div>
+  </div>
+  <div class="row2">
+    <div class="card"><div class="card-title"><i class="ti ti-chart-pie" style="color:var(--pink)"></i>Patient condition summary</div><div class="pie-wrap"><canvas id="pie1" width="110" height="110"></canvas><div class="pie-legend"><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--red)"></div>Critical<span class="pie-leg-val">3</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--amber)"></div>Needs watch<span class="pie-leg-val">8</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--green)"></div>Doing well<span class="pie-leg-val">13</span></div></div></div><div style="margin-top:10px;font-size:12px;color:var(--sub);line-height:1.5">More than half the patients are stable tonight. 3 need a doctor to see them urgently.</div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-chart-pie" style="color:var(--lavender)"></i>Handover status</div><div class="pie-wrap"><canvas id="pie2" width="110" height="110"></canvas><div class="pie-legend"><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--peach)"></div>Done<span class="pie-leg-val">18</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--peach-mid)"></div>In progress<span class="pie-leg-val">4</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:#f0ddd5"></div>Not yet done<span class="pie-leg-val">2</span></div></div></div><div style="margin-top:10px;font-size:12px;color:var(--sub);line-height:1.5">75% of handovers are recorded. 2 nurses still need to log updates.</div></div>
+  </div>
+  <div class="row2">
+    <div class="card"><div class="card-title"><i class="ti ti-activity-heartbeat beat" style="color:var(--red)"></i>Live readings — Ravi Kumar · Bed 4 <span class="vital-live-dot"></span></div><div class="vital-grid"><div class="vital-box"><div class="vital-lbl">Heart rate</div><div class="vital-num" id="v-hr" style="color:var(--red)">98<span class="vital-unit">bpm</span></div><div class="vital-bar"><div class="vital-fill" id="v-hr-b" style="background:var(--red);width:72%"></div></div></div><div class="vital-box"><div class="vital-lbl">Oxygen level</div><div class="vital-num" id="v-spo" style="color:var(--blue)">94<span class="vital-unit">%</span></div><div class="vital-bar"><div class="vital-fill" id="v-spo-b" style="background:var(--blue);width:94%"></div></div></div><div class="vital-box"><div class="vital-lbl">Blood pressure</div><div class="vital-num" id="v-bp" style="color:var(--lavender)">140<span class="vital-unit">/90</span></div><div class="vital-bar"><div class="vital-fill" style="background:var(--lavender);width:78%"></div></div></div><div class="vital-box"><div class="vital-lbl">Temperature</div><div class="vital-num" id="v-tmp" style="color:var(--amber)">38.4<span class="vital-unit">°C</span></div><div class="vital-bar"><div class="vital-fill" id="v-tmp-b" style="background:var(--amber);width:64%"></div></div></div></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-bell" style="color:var(--amber)"></i>Latest alerts</div><div class="alert-row"><div class="alert-ico" style="background:var(--red-light)"><i class="ti ti-heart" style="color:var(--red)"></i></div><div><div class="alert-title">Oxygen dropped — Bed 4</div><div class="alert-desc">Oxygen fell to 91%. Extra oxygen given. Doctor informed.</div><div class="alert-time"><div class="alert-dot"></div>2 min ago</div></div></div><div class="alert-row"><div class="alert-ico" style="background:var(--amber-light)"><i class="ti ti-pill" style="color:var(--amber)"></i></div><div><div class="alert-title">Missed tablet — Bed 11</div><div class="alert-desc">Diabetes tablet not given at 10 PM. Blood sugar is high.</div><div class="alert-time">18 min ago</div></div></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-patients">
+  <div class="card"><div class="card-title"><i class="ti ti-users" style="color:var(--peach)"></i>All patients — Ward B & ICU</div><div id="nurse-pat-list"></div></div>
+</div>
+
+<div class="pane" id="pane-record">
+  <div class="row2">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-microphone" style="color:var(--peach)"></i>Voice Handover Recording</div>
+      <div class="info-box"><i class="ti ti-info-circle"></i>Speak clearly about your patient — what happened, medications given, vitals, and what the next nurse should know. AI will analyse and flag critical conditions automatically.</div>
+      <div id="speech-status" style="display:none;background:var(--amber-light);border:1.5px solid var(--amber);border-radius:9px;padding:9px 13px;font-size:12px;color:var(--amber);font-weight:700;margin-bottom:12px"></div>
+      <div class="mic-zone">
+        <div class="mic-wrap">
+          <div class="mic-ring" id="r1"></div><div class="mic-ring r2" id="r2"></div>
+          <button class="mic-btn" id="mic-btn" onclick="toggleRec()"><i class="ti ti-microphone" id="mic-ico"></i></button>
+        </div>
+        <div class="rec-lbl" id="rec-lbl">Tap to start recording</div>
+        <div class="rec-time" id="rec-time">00:00</div>
+        <div class="wvf" id="wvf"></div>
+
+        <div class="transcript-box" id="transcript-box">
+          <div class="transcript-label"><i class="ti ti-ear" style="font-size:12px;color:var(--peach)"></i>Live transcript <span class="vital-live-dot"></span></div>
+          <div id="transcript-final" class="final-text"></div>
+          <span id="transcript-interim" class="interim-text"></span>
+        </div>
+
+        <div class="ai-box" id="ai-box">
+          <div class="ai-box-header"><i class="ti ti-brain" style="font-size:14px"></i>AI Clinical Analysis</div>
+          <div id="ai-content"></div>
+        </div>
+
+        <div style="font-size:12px;color:var(--muted);margin:14px 0 8px;font-weight:700;text-align:left">What is this handover about?</div>
+        <div class="tag-row">
+          <span class="vtag on" onclick="this.classList.toggle('on')">Medication</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Vitals</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Behaviour</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Pain</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Fluids</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Needs doctor</span>
+          <span class="vtag" onclick="this.classList.toggle('on')">Fall risk</span>
+        </div>
+        <button class="submit-btn" id="sub-btn" onclick="submitRec()" disabled>Save to Handover Log</button>
+        <div class="toast" id="rec-toast"><i class="ti ti-check" style="font-size:16px"></i>Saved! Handover sent to log and patient notified.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- Patient notification preview -->
+      <div class="card" id="patient-notify-card" style="display:none">
+        <div class="card-title"><i class="ti ti-send" style="color:var(--green)"></i>Patient Notification Sent</div>
+        <div class="patient-notify-box on" id="patient-notify-box">
+          <div class="patient-notify-header"><i class="ti ti-circle-check" style="font-size:14px"></i>Sent to patient record system</div>
+          <div class="patient-notify-msg" id="patient-notify-msg"></div>
+        </div>
+      </div>
+
+      <!-- Live saved handovers preview -->
+      <div class="card">
+        <div class="card-title"><i class="ti ti-file-text" style="color:var(--lavender)"></i>Saved this session <span id="session-count" style="background:var(--lav-light);color:var(--lavender);padding:2px 8px;border-radius:7px;font-size:10px;font-weight:700;margin-left:4px">0</span></div>
+        <div id="session-log" style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">No handovers recorded yet this session</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pane" id="pane-alerts">
+  <div class="card"><div class="card-title"><i class="ti ti-bell" style="color:var(--red)"></i>Active alerts <span id="a-count" style="background:var(--red-light);color:var(--red);padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;margin-left:4px">3</span></div><div id="alert-list"></div></div>
+</div>
+
+<div class="pane" id="pane-log">
+  <div class="card"><div class="card-title"><i class="ti ti-file-text" style="color:var(--lavender)"></i>Handover Log — all shifts</div><div id="log-list"></div></div>
+</div>
+`;}
+
+/* ═══════════════ DOCTOR HTML ═══════════════ */
+function buildDoctor(){return`
+<div class="pane on" id="pane-ddash">
+  <div class="row3">
+    <div class="card"><div class="card-title"><i class="ti ti-users" style="color:var(--blue)"></i>Patients today</div><div class="stat-val" style="color:var(--blue)">24</div><div class="stat-desc">Across Ward B and ICU</div><div class="stat-badge" style="background:var(--blue-light);color:var(--blue)">Morning rounds starting</div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-alert-triangle beat" style="color:var(--red)"></i>Need your attention</div><div class="stat-val" style="color:var(--red)" id="d-alert-count">3</div><div class="stat-desc">Patients flagged by nurses overnight</div><div class="stat-badge" style="background:var(--red-light);color:var(--red)"><i class="ti ti-clock" style="font-size:10px"></i>See all in Alerts</div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-check" style="color:var(--green)"></i>Stable patients</div><div class="stat-val" style="color:var(--green)">13</div><div class="stat-desc">No issues reported overnight</div><div class="stat-badge" style="background:var(--green-light);color:var(--green)">Routine check only</div></div>
+  </div>
+  <div class="row2">
+    <div class="card"><div class="card-title"><i class="ti ti-chart-pie" style="color:var(--blue)"></i>Patient condition overview</div><div class="pie-wrap"><canvas id="dpie1" width="110" height="110"></canvas><div class="pie-legend"><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--red)"></div>Critical — needs you now<span class="pie-leg-val">3</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--amber)"></div>Needs watching today<span class="pie-leg-val">8</span></div><div class="pie-leg-item"><div class="pie-leg-dot" style="background:var(--green)"></div>Doing well<span class="pie-leg-val">13</span></div></div></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-list" style="color:var(--lavender)"></i>AI Night Summary</div><div style="display:flex;flex-direction:column;gap:10px;margin-top:4px"><div style="padding:10px 12px;background:var(--red-light);border-radius:10px;border-left:3px solid var(--red)"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:2px">🔴 Ravi Kumar · Bed 4 · ICU</div><div style="font-size:12px;color:var(--sub)">Oxygen kept dropping overnight. On extra oxygen now. AI: Hypoxia event detected — immediate review.</div></div><div style="padding:10px 12px;background:var(--amber-light);border-radius:10px;border-left:3px solid var(--amber)"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:2px">🟡 Meena Devi · Bed 7</div><div style="font-size:12px;color:var(--sub)">Post-surgery pain spiked at night. Morphine helped. AI: Monitor for respiratory depression.</div></div><div style="padding:10px 12px;background:var(--amber-light);border-radius:10px;border-left:3px solid var(--amber)"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:2px">🟡 Arjun Sharma · Bed 11</div><div style="font-size:12px;color:var(--sub)">Missed diabetes tablet. Blood sugar high at 11.4. AI: Risk of DKA — administer medication now.</div></div></div></div>
+  </div>
+</div>
+<div class="pane" id="pane-dpatients">
+  <div class="card"><div class="card-title"><i class="ti ti-building-hospital" style="color:var(--peach)"></i>Ward B</div><div id="doc-ward-b-list"></div></div>
+  <div class="card"><div class="card-title"><i class="ti ti-heart-rate-monitor" style="color:var(--red)"></i>ICU</div><div id="doc-icu-list"></div></div>
+</div>
+<div class="pane" id="pane-dalerts">
+  <div class="card"><div class="card-title"><i class="ti ti-bell" style="color:var(--red)"></i>Alerts for you <span id="da-count" style="background:var(--red-light);color:var(--red);padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;margin-left:4px">3</span></div><div class="info-box" style="margin-top:4px"><i class="ti ti-info-circle"></i>Issues flagged by night shift nurses. Tap "Seen" once reviewed.</div><div style="margin-top:14px" id="d-alert-list"></div></div>
+</div>
+`;}
+
+/* ═══════════════ RENDER PATIENTS ═══════════════ */
+function renderNursePatients(){
+  const el=document.getElementById('nurse-pat-list');if(!el)return;
+  el.innerHTML=patients.map(p=>`
+    <div class="pat-row">
+      <div class="pat-av" style="background:${p.bc};color:${p.tc}">${p.init}</div>
+      <div style="flex:1">
+        <div class="pat-name">${p.name}</div>
+        <div class="pat-info">${p.bed} · ${p.ward}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px"><i class="ti ti-nurse" style="font-size:11px"></i> ${p.nurse}</div>
+      </div>
+      <span class="pat-badge risk-${p.risk}">${p.risk==='high'?'Critical':p.risk==='med'?'Needs watch':'Doing well'}</span>
+      <button class="pat-expand-btn" onclick="toggleDetail(${p.id})">Details</button>
+    </div>
+    <div class="pat-detail" id="det-${p.id}">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">What's happening</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:12px">${p.status}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Current readings</div>
+      <div class="vital-grid">
+        <div class="vital-box"><div class="vital-lbl">Heart rate</div><div class="vital-num" style="color:var(--peach)">${p.vitals.hr}<span class="vital-unit">bpm</span></div></div>
+        <div class="vital-box"><div class="vital-lbl">Oxygen level</div><div class="vital-num" style="color:var(--blue)">${p.vitals.spo}<span class="vital-unit">%</span></div></div>
+        <div class="vital-box"><div class="vital-lbl">Blood pressure</div><div class="vital-num" style="color:var(--lavender)">${p.vitals.bp}</div></div>
+        <div class="vital-box"><div class="vital-lbl">Temperature</div><div class="vital-num" style="color:var(--amber)">${p.vitals.temp}<span class="vital-unit">°C</span></div></div>
+      </div>
+    </div>`).join('');
+}
+function toggleDetail(id){document.getElementById('det-'+id).classList.toggle('on');}
+
+function renderDoctorPatients(){
+  [['doc-ward-b-list',patients.filter(p=>p.ward==='Ward B')],['doc-icu-list',patients.filter(p=>p.ward==='ICU')]].forEach(([id,list])=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=list.map(p=>`
+      <div class="doc-patient-row">
+        <div class="pat-av" style="background:${p.bc};color:${p.tc};width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${p.init}</div>
+        <div class="doc-pat-main">
+          <div class="doc-pat-name">${p.name}</div>
+          <div class="doc-pat-meta">${p.bed} &nbsp;·&nbsp; <span class="pat-badge risk-${p.risk}" style="display:inline-block">${p.risk==='high'?'Critical':p.risk==='med'?'Needs watch':'Doing well'}</span></div>
+          <div class="doc-pat-nurse"><i class="ti ti-nurse"></i> Cared for by: ${p.nurse}</div>
+          <div class="doc-pat-status ${p.risk==='high'?'urgent':p.risk==='med'?'moderate':'good'}">${p.status}</div>
+        </div>
+        <button class="doc-note-btn" id="note-btn-${p.id}" onclick="markSeen(${p.id})">Mark seen</button>
+      </div>`).join('');
+  });
+}
+function markSeen(id){const b=document.getElementById('note-btn-'+id);if(b){b.textContent='✓ Seen';b.className='doc-note-btn done';}}
+
+function renderAlerts(cid){
+  const el=document.getElementById(cid);if(!el)return;
+  el.innerHTML=alertData.map((a,i)=>`
+    <div class="alert-row" id="ar-${cid}-${i}">
+      <div class="alert-ico" style="background:${a.ib}"><i class="ti ${a.ico}" style="color:${a.ic}"></i></div>
+      <div style="flex:1">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div>
+        <div class="alert-time">${a.live?'<div class="alert-dot"></div>':''} ${a.time}</div>
+      </div>
+      <button class="dismiss-btn" onclick="dismissAlert('${cid}',${i})">${cid==='alert-list'?'Dismiss':'Seen'}</button>
+    </div>`).join('');
+  updateCounts();
+}
+function dismissAlert(cid,i){
+  const el=document.getElementById('ar-'+cid+'-'+i);if(!el)return;
+  el.style.transition='opacity .3s,transform .3s';el.style.opacity='0';el.style.transform='translateX(12px)';
+  setTimeout(()=>{alertData.splice(i,1);renderAlerts(cid);},320);
+}
+function updateCounts(){
+  const c=alertData.length;
+  ['a-count','da-count','d-alert-count'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=c;});
+  const dot=document.getElementById('nav-dot');if(dot)dot.style.display=c?'block':'none';
+}
+
+/* ═══════════════ HANDOVER LOG RENDER ═══════════════ */
+function renderHandoverLog(){
+  const el=document.getElementById('log-list');if(!el)return;
+  const base=patients.flatMap(p=>p.handovers.map(h=>({...h,patient:p.name,bed:p.bed,ward:p.ward,isNew:false})));
+  const all=[...savedHandovers.map(h=>({...h,isNew:true})),...base];
+  el.innerHTML=all.map(h=>`
+    <div class="log-entry${h.isNew?' new-entry':''}${h.aiRisk==='CRITICAL'?' critical-entry':''}">
+      <div class="log-header">
+        <div>
+          <div class="log-name">${h.patient||'General'} · ${h.bed||'—'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${h.ward||''} &nbsp; <span class="pat-badge risk-${h.risk||'low'}" style="display:inline-block;padding:1px 7px;font-size:10px">${h.risk==='high'?'Critical':h.risk==='med'?'Needs watch':'Doing well'}</span></div>
+        </div>
+        <div class="log-meta">${h.time}<br><span class="log-shift-badge" style="${h.shift==='Night Shift'||h.shift==='Recorded'?'background:var(--lav-light);color:var(--lavender)':'background:var(--amber-light);color:var(--amber)'}">${h.shift}</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Logged by: <strong style="color:var(--sub)">${h.by}</strong>${h.isNew?' <span style="background:var(--peach-light);color:var(--peach);padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;margin-left:4px">NEW</span>':''}</div>
+      <div class="log-body">${h.note}</div>
+      ${h.aiNote?`<div style="margin-top:10px;padding:9px 12px;background:var(--lav-light);border-radius:9px;border-left:3px solid var(--lavender)"><div style="font-size:10px;font-weight:700;color:var(--lavender);margin-bottom:4px;display:flex;align-items:center;gap:5px"><i class="ti ti-brain" style="font-size:12px"></i> AI Analysis · ${h.aiRisk}</div><div style="font-size:12px;color:var(--sub)">${h.aiNote}</div></div>`:''}
+      <div class="log-tags" style="margin-top:8px">${(h.tags||[]).map(t=>`<span class="log-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════ CHARTS ═══════════════ */
+function drawPie(id,slices){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d');const cx=55,cy=55,r=44,inner=26;
+  let angle=-Math.PI/2;const total=slices.reduce((a,s)=>a+s.v,0);
+  slices.forEach(s=>{const sw=(s.v/total)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+sw);ctx.closePath();ctx.fillStyle=s.c;ctx.fill();angle+=sw;});
+  ctx.beginPath();ctx.arc(cx,cy,inner,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.fillStyle='#2d1f1a';ctx.font='700 14px Comfortaa,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(total,cx,cy-5);
+  ctx.fillStyle='#b09080';ctx.font='500 9px Comfortaa,sans-serif';ctx.fillText('total',cx,cy+7);
+}
+
+/* ═══════════════ LIVE VITALS ═══════════════ */
+function startVitals(){
+  clearInterval(vitalInterval);
+  vitalInterval=setInterval(()=>{
+    const hr=90+Math.round(Math.random()*18);
+    const sp=91+Math.round(Math.random()*6);
+    const tmp=(37.6+Math.random()*1.4).toFixed(1);
+    const sys=135+Math.round(Math.random()*12);
+    const dia=85+Math.round(Math.random()*8);
+    const hEl=document.getElementById('v-hr');
+    if(hEl){hEl.innerHTML=hr+'<span class="vital-unit">bpm</span>';hEl.style.color=hr>108?'#e05555':hr>98?'#e8a030':'#3eb489';}
+    const sEl=document.getElementById('v-spo');
+    if(sEl){sEl.innerHTML=sp+'<span class="vital-unit">%</span>';sEl.style.color=sp<93?'#e05555':sp<96?'#e8a030':'#2d7dd2';}
+    const bEl=document.getElementById('v-bp');
+    if(bEl){bEl.innerHTML=sys+'<span class="vital-unit">/'+dia+'</span>';bEl.style.color=sys>145?'#e05555':sys>135?'#e8a030':'#b07ec8';}
+    const tEl=document.getElementById('v-tmp');
+    if(tEl){tEl.innerHTML=tmp+'<span class="vital-unit">°C</span>';tEl.style.color=parseFloat(tmp)>39?'#e05555':parseFloat(tmp)>38?'#e8a030':'#3eb489';}
+    const hb=document.getElementById('v-hr-b');if(hb)hb.style.width=Math.round(hr/1.4)+'%';
+    const sb=document.getElementById('v-spo-b');if(sb)sb.style.width=sp+'%';
+  },2400);
+}
+
+/* ═══════════════ VOICE RECORDING ═══════════════ */
+let rec=false,timer=null,secs=0,wt=null,recognition=null;
+let finalTranscript='',interimTranscript='';
+
+function buildWvf(){
+  const w=document.getElementById('wvf');if(!w)return;
+  w.innerHTML='';
+  for(let i=0;i<26;i++){const b=document.createElement('div');b.className='wvf-b';b.style.height=(Math.random()*20+6)+'px';w.appendChild(b);}
+}
+
+function showSpeechStatus(msg){
+  const s=document.getElementById('speech-status');if(!s)return;
+  if(msg){s.textContent=msg;s.style.display='block';}else{s.style.display='none';}
+}
+
+function toggleRec(){if(!rec)startRec();else stopRec();}
+
+function startRec(){
+  rec=true;finalTranscript='';interimTranscript='';
+  const btn=document.getElementById('mic-btn');
+  const ico=document.getElementById('mic-ico');
+  const lbl=document.getElementById('rec-lbl');
+  if(btn)btn.classList.add('rec');
+  if(ico)ico.className='ti ti-square';
+  if(lbl){lbl.textContent='Recording… tap to stop';lbl.style.color='#e05555';}
+  const r1=document.getElementById('r1'),r2=document.getElementById('r2');
+  if(r1)r1.classList.add('on');if(r2)r2.classList.add('on');
+  // hide ai box when starting new
+  const ab=document.getElementById('ai-box');if(ab)ab.classList.remove('on');
+  secs=0;
+  timer=setInterval(()=>{
+    secs++;
+    const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');
+    const rt=document.getElementById('rec-time');if(rt)rt.textContent=m+':'+s;
+    // Enable save button after 3 seconds of recording regardless of transcript
+    if(secs>=3){const sub=document.getElementById('sub-btn');if(sub)sub.disabled=false;}
+  },1000);
+  wt=setInterval(()=>{
+    document.querySelectorAll('.wvf-b').forEach(b=>{b.classList.toggle('on',Math.random()>.4);b.style.height=(Math.random()*22+5)+'px';});
+  },110);
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){
+    recognition=new SR();
+    recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-IN';
+    recognition.onstart=()=>showSpeechStatus('🎙 Microphone is on — speak now');
+    recognition.onresult=e=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal) finalTranscript+=e.results[i][0].transcript+' ';
+        else interim+=e.results[i][0].transcript;
+      }
+      interimTranscript=interim;
+      updateLiveTranscript();
+    };
+    recognition.onerror=e=>{
+      if(e.error==='not-allowed')showSpeechStatus('⚠ Microphone blocked. Please allow mic and try again.');
+      else if(e.error==='no-speech')showSpeechStatus('No speech detected — try speaking louder');
+      else showSpeechStatus('Speech error: '+e.error);
+    };
+    recognition.onend=()=>{if(rec)recognition.start();};
+    recognition.start();
+  } else {
+    showSpeechStatus('⚠ Your browser does not support voice input. Use Chrome for best results.');
+  }
+}
+
+function updateLiveTranscript(){
+  const box=document.getElementById('transcript-box');
+  const ft=document.getElementById('transcript-final');
+  const it=document.getElementById('transcript-interim');
+  if(!box||!ft||!it)return;
+  box.classList.add('on');
+  ft.textContent=finalTranscript||'';
+  it.textContent=interimTranscript||'';
+  // enable save once we have some transcript
+  const sub=document.getElementById('sub-btn');
+  if(sub&&finalTranscript.trim().length>10)sub.disabled=false;
+}
+
+function stopRec(){
+  if(!rec&&!recognition)return;
+  rec=false;
+  if(recognition){recognition.onend=null;recognition.stop();recognition=null;}
+  clearInterval(timer);clearInterval(wt);
+  document.querySelectorAll('.wvf-b').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('mic-btn'),ico=document.getElementById('mic-ico'),lbl=document.getElementById('rec-lbl');
+  if(btn)btn.classList.remove('rec');
+  if(ico)ico.className='ti ti-microphone';
+  if(lbl){lbl.textContent=finalTranscript.trim()?'Done! Review and save below.':'Recording done — tap Save to log this handover.';lbl.style.color=finalTranscript.trim()?'#3eb489':'#e8a030';}
+  const r1=document.getElementById('r1'),r2=document.getElementById('r2');
+  if(r1)r1.classList.remove('on');if(r2)r2.classList.remove('on');
+  showSpeechStatus('');
+  interimTranscript='';
+  const it=document.getElementById('transcript-interim');if(it)it.textContent='';
+  // Always enable save after stopping — allow saving even without transcript text
+  const sub=document.getElementById('sub-btn');if(sub&&secs>0)sub.disabled=false;
+  // Run AI analysis if we have transcript
+  if(finalTranscript.trim().length>10) runAIAnalysis(finalTranscript.trim());
+}
+
+/* ═══════════════ AI ANALYSIS (Claude API) ═══════════════ */
+async function runAIAnalysis(transcriptText){
+  const aiBox=document.getElementById('ai-box');
+  const aiContent=document.getElementById('ai-content');
+  if(!aiBox||!aiContent)return;
+
+  aiBox.classList.add('on');
+  aiContent.innerHTML=`<div class="ai-thinking"><div class="ai-thinking-dot"></div><div class="ai-thinking-dot"></div><div class="ai-thinking-dot"></div><span style="margin-left:4px">Analysing handover…</span></div>`;
+
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:`You are a clinical AI assistant for a hospital handover system in India. Analyse nurse handover notes and return ONLY a valid JSON object with these exact fields:
+{
+  "riskLevel": "CRITICAL" | "MODERATE" | "STABLE",
+  "riskColor": "#e05555" | "#e8a030" | "#3eb489",
+  "riskBg": "#fdeaea" | "#fdf0dc" | "#e0f5ed",
+  "summary": "2-3 sentence clinical summary of what happened",
+  "immediateActions": ["action 1", "action 2"],
+  "watchFor": ["sign to watch for"],
+  "patientMessage": "A simple, kind 1-2 sentence message for the patient or their family explaining what was done during this shift in plain language (no medical jargon)",
+  "tags": ["tag1","tag2"]
+}
+Be accurate. If oxygen is mentioned dropping, mark CRITICAL. If pain, missed meds, blood sugar — MODERATE. Return ONLY the JSON, no markdown, no explanation.`,
+        messages:[{role:'user',content:`Nurse handover note: "${transcriptText}"\n\nAnalyse this and return JSON only.`}]
+      })
+    });
+
+    const data=await response.json();
+    let text=(data.content||[]).map(i=>i.text||'').join('');
+    // Strip any accidental markdown
+    text=text.replace(/```json|```/g,'').trim();
+    let result;
+    try{result=JSON.parse(text);}catch(e){
+      // fallback if JSON parse fails
+      result={
+        riskLevel:'MODERATE',riskColor:'#e8a030',riskBg:'#fdf0dc',
+        summary:text.substring(0,200),immediateActions:['Review patient status'],watchFor:['Monitor vitals'],
+        patientMessage:'The nurse has completed their shift notes for your care.',tags:['Handover']
+      };
+    }
+    renderAIResult(result,transcriptText);
+  }catch(err){
+    aiContent.innerHTML=`<div style="font-size:12px;color:var(--muted)">AI analysis unavailable. Your handover note has been saved as-is.</div>`;
+    const sub=document.getElementById('sub-btn');if(sub)sub.disabled=false;
+  }
+}
+
+function renderAIResult(r,originalNote){
+  const aiContent=document.getElementById('ai-content');if(!aiContent)return;
+  const riskLabel=r.riskLevel==='CRITICAL'?'🔴 CRITICAL':r.riskLevel==='MODERATE'?'🟡 MODERATE':'🟢 STABLE';
+  aiContent.innerHTML=`
+    <div class="ai-risk-badge" style="background:${r.riskBg};color:${r.riskColor}">${riskLabel}</div>
+    <div class="ai-body">
+      <div style="margin-bottom:10px">${r.summary}</div>
+      ${r.immediateActions&&r.immediateActions.length?`
+      <div style="font-size:10px;font-weight:700;color:var(--lavender);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Immediate actions</div>
+      <ul style="padding-left:16px;margin-bottom:10px">${r.immediateActions.map(a=>`<li style="font-size:12px;color:var(--sub);margin-bottom:3px">${a}</li>`).join('')}</ul>`:''}
+      ${r.watchFor&&r.watchFor.length?`
+      <div style="font-size:10px;font-weight:700;color:var(--lavender);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Watch for</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${r.watchFor.map(w=>`<span style="background:var(--lav-light);color:var(--lavender);padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700">${w}</span>`).join('')}</div>`:''}
+    </div>`;
+
+  // Store result for saving
+  window._lastAIResult={...r,originalNote};
+  // show patient notification preview
+  showPatientNotify(r.patientMessage);
+  const sub=document.getElementById('sub-btn');if(sub)sub.disabled=false;
+}
+
+function showPatientNotify(msg){
+  const card=document.getElementById('patient-notify-card');
+  const msgEl=document.getElementById('patient-notify-msg');
+  if(!card||!msgEl)return;
+  card.style.display='block';
+  msgEl.innerHTML=`<strong style="color:var(--text);display:block;margin-bottom:4px">Message to patient record</strong>${msg||'Nurse handover completed. Care team updated.'}`;
+}
+
+/* ═══════════════ SUBMIT HANDOVER ═══════════════ */
+function submitRec(){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const tags=[...document.querySelectorAll('.vtag.on')].map(t=>t.textContent.trim());
+  const note=finalTranscript.trim()||`(Voice handover recorded — ${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')} duration)`;
+  const ai=window._lastAIResult||{};
+
+  const entry={
+    patient:'Ward B · General',bed:'—',ward:'Ward B',
+    risk: ai.riskLevel==='CRITICAL'?'high': ai.riskLevel==='MODERATE'?'med':'low',
+    shift:'Recorded',by:loggedUser,time:timeStr,note,tags,
+    aiRisk:ai.riskLevel||null,
+    aiNote:ai.summary||null,
+    isNew:true
+  };
+  savedHandovers.unshift(entry);
+
+  // update handover count
+  const dc=document.getElementById('d-handover-count');if(dc)dc.textContent=18+savedHandovers.length;
+
+  // update session log panel
+  updateSessionLog();
+
+  // show toast
+  const t=document.getElementById('rec-toast');
+  if(t){t.classList.add('on');setTimeout(()=>t.classList.remove('on'),5000);}
+
+  // reset recording state
+  finalTranscript='';interimTranscript='';
+  const sub=document.getElementById('sub-btn');if(sub)sub.disabled=true;
+  const rt=document.getElementById('rec-time');if(rt)rt.textContent='00:00';
+  const lbl=document.getElementById('rec-lbl');if(lbl){lbl.textContent='Tap to start recording';lbl.style.color='';}
+  const tb=document.getElementById('transcript-box');if(tb)tb.classList.remove('on');
+  const ab=document.getElementById('ai-box');if(ab)ab.classList.remove('on');
+  const ft=document.getElementById('transcript-final');if(ft)ft.textContent='';
+  const it=document.getElementById('transcript-interim');if(it)it.textContent='';
+  window._lastAIResult=null;
+
+  // if critical, add to alerts
+  if(entry.risk==='high'){
+    alertData.unshift({
+      ico:'ti-alert-triangle',ic:'#e05555',ib:'#fdeaea',
+      title:`Critical handover — ${entry.by} · ${timeStr}`,
+      desc:note.substring(0,100)+(note.length>100?'…':''),
+      time:'Just now',live:true
+    });
+    updateCounts();
+    renderAlerts('alert-list');
+  }
+}
+
+function updateSessionLog(){
+  const el=document.getElementById('session-log');if(!el)return;
+  const sc=document.getElementById('session-count');if(sc)sc.textContent=savedHandovers.length;
+  el.innerHTML=savedHandovers.map(h=>`
+    <div style="padding:10px 12px;border-radius:10px;border-left:3px solid ${h.risk==='high'?'var(--red)':h.risk==='med'?'var(--amber)':'var(--green)'};background:${h.risk==='high'?'var(--red-light)':h.risk==='med'?'var(--amber-light)':'var(--green-light)'};margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">${h.time} · by ${h.by}</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.5">${h.note.substring(0,120)}${h.note.length>120?'…':''}</div>
+      ${h.aiRisk?`<div style="font-size:10px;font-weight:700;color:var(--lavender);margin-top:5px;display:flex;align-items:center;gap:4px"><i class="ti ti-brain" style="font-size:11px"></i> AI: ${h.aiRisk}</div>`:''}
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
